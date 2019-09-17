@@ -13,6 +13,8 @@
 	Support Email:	guij@sari.ac.cn
 */
 
+#pragma once
+
 #include <Core/Public/marco.h>
 
 #ifdef LINUX

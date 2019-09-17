@@ -13,6 +13,8 @@
 	Support Email:	guij@sari.ac.cn
 */
 
+#pragma once
+
 #include <assert.h>
 #include <cstddef>
 
@@ -48,13 +50,14 @@ namespace Septem
 	typedef signed long long	int64;		// 64-bit signed.
 
 	typedef std::size_t SIZE_T;
-
+#if 0
+	// TODO: build failed
 	// User-defined literals 
 	uint64 operator"" _ui64(uint64 n)
 	{
 		return n;
 	}
-	
+#endif
 }
 
 #endif // !CROSSPLATFORMVALUE

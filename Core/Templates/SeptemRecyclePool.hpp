@@ -98,7 +98,7 @@ namespace Septem
 			return m_pool.size();
 		}
 
-		std::shared_ptr<T> Alloc()
+		std::shared_ptr<T> Alloc(bool bNew = true)
 		{
 			std::shared_ptr<T> ret;
 

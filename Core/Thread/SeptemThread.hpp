@@ -40,11 +40,11 @@ namespace Septem
 	```
 	*/
 	template<typename TaskType >
-	class TTaskThread : public TSharedRecyclePool
+	class TTaskThread : public TSharedRecyclePool<TaskType>
 	{
 	public:
 		TTaskThread()
-			:TSharedRecyclePool()
+			:TSharedRecyclePool<TaskType>()
 		{
 			m_Thread = 0;
 			bRunning = false;
@@ -130,7 +130,7 @@ namespace Septem
 	template<typename TaskType>
 	inline void * TTaskThread<TaskType>::ThreadRun(void * arg)
 	{
-		TTaskThread<TaskType>* thread = dynamic_cast<TTaskThread<TaskType>*>arg;
+		TTaskThread<TaskType>* thread = dynamic_cast<TTaskThread<TaskType>*>(arg);
 		check(thread);
 		thread->Init();
 		thread->Run();
