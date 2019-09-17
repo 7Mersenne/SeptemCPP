@@ -53,7 +53,7 @@ namespace Septem
 	protected:
 		static T* pSingleton;
 #ifdef LINUX
-		static pthread_mutex_t m_SingletonLock;
+		static LOCKTYPE m_SingletonLock;
 #endif // LINUX
 
 	private:
@@ -114,7 +114,7 @@ namespace Septem
 
 #ifdef LINUX
 	template<typename T>
-	pthread_mutex_t TSingleton<T>::m_SingletonLock = PTHREAD_MUTEX_INITIALIZER;
+	LOCKTYPE TSingleton<T>::m_SingletonLock = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
 }

@@ -28,6 +28,11 @@
 #ifndef CROSSPLATFORMVALUE
 #define CROSSPLATFORMVALUE
 
+#ifndef DEFAULT_RECYCLE_POOL_SIZE
+#define DEFAULT_RECYCLE_POOL_SIZE 1024
+#endif // !DEFAULT_RECYCLE_POOL_SIZE
+
+
 namespace Septem
 {
 	// Unsigned base types.

@@ -15,130 +15,135 @@
 
 #pragma once
 
-#include <Core/Containers/SeptemArray.h>
+#include <Core/Public/marco.h>
+#include <Core/Thread/ScopLock.h>
+//shared_ptr
+#include <memory>
+//container
+#include <stack>
 
 namespace Septem
 {
 	/*
-	*	SharedPtr Recycle Pool
-	*	default mod = no thread-safe
-	*	please use ESPMode::ThreadSafe for thread-safe
+	* SharedPtr Recycle Pool
+	* Thread safe
 	*/
-	template<typename T, ESPMode InMode = ESPMode::Fast>
-	//class SEPTEMCORE_API TSharedRecyclePool :£º SEPTEMCORE_API cannot use in template
+	template<typename T>
 	class TSharedRecyclePool
 	{
 	public:
-		TSharedRecyclePool(int32 InNum = 1024)
+		TSharedRecyclePool(int32 InNum = DEFAULT_RECYCLE_POOL_SIZE)
 		{
-			if (InMode == ESPMode::ThreadSafe)
-			{
-				poolCriticalSection.Lock();
-			}
+			// init locker
+			m_pool_locker = PTHREAD_MUTEX_INITIALIZER;
 
-			ptrPool.Reset(InNum);
-			
-			for (int32 i = 0; i < InNum; ++i)
-			{
-				TSharedPtr<T, InMode> ptr(new T());
-				ptrPool.Add(ptr);
-			}
-
-			if (InMode == ESPMode::ThreadSafe)
-			{
-				poolCriticalSection.Unlock();
-			}
+			Reset(InNum);
 		}
 
-		~TSharedRecyclePool()
+		virtual ~TSharedRecyclePool()
 		{}
 
-		// Thread safe when InMode = ESPMode::ThreadSafe
-		TSharedPtr<T, InMode> Alloc()
-		{
-			if (InMode == ESPMode::ThreadSafe)
-			{
-				poolCriticalSection.Lock();
-				if (ptrPool.Num() > 0)
-				{				
-					//TSharedPtr<T, InMode> popPtr(ptrPool.Pop(false));
-					TSharedPtr<T, InMode>&& popPtr = ptrPool.Pop(false);
-					poolCriticalSection.Unlock();
-
-					return popPtr;
-				}
-				poolCriticalSection.Unlock();
-
-				return TSharedPtr<T, InMode>(new T());
-			}
-			return PopOrCreate();
-		}
-
-		/* 
-		*	Thread safe when InMode = ESPMode::ThreadSafe
-		*	ensure the InSharedPtr is valid
+		/*
+		* Reset the pool to PoolCount elements
+		*if PoolCount < m_pool.size(), do nothing
 		*/
-		void Dealloc(const TSharedPtr<T, InMode>& InSharedPtr)
+		void Reset(int32 PoolCount = DEFAULT_RECYCLE_POOL_SIZE)
 		{
-			if (InSharedPtr.IsValid())
+			ScopeLock _scopelock(&m_pool_locker);
+			int32 imax = PoolCount - m_pool.size();
+			if (imax > 0)
 			{
-				if (InMode == ESPMode::ThreadSafe)
+				// push new object into pool
+				for (int32 i = 0; i < imax; ++i)
 				{
-					FScopeLock lockPool(&poolCriticalSection);
-					if (ptrPool.GetSlack() > 0)
-					{
-						ptrPool.Push(InSharedPtr);
-					}
-				}
-				else {
-					if (ptrPool.GetSlack() > 0)
-					{
-						ptrPool.Push(InSharedPtr);
-					}
+					m_pool.push(std::make_shared<T>());
 				}
 			}
 		}
 
 		/*
-		*	Thread safe when InMode = ESPMode::ThreadSafe
-		*	ensure the InSharedPtr is valid
+		* Reset the pool to PoolCount elements
+		*if PoolCount < m_pool.size(), pop noneed elements
 		*/
-		void DeallocForceRecycle(const TSharedPtr<T, InMode>& InSharedPtr)
+		void Resize(int32 PoolCount = DEFAULT_RECYCLE_POOL_SIZE)
 		{
-			if (InSharedPtr.IsValid()) {
-				if (InMode == ESPMode::ThreadSafe)
+			ScopeLock _scopelock(&m_pool_locker);
+			int32 imax = PoolCount - m_pool.size();
+			if (imax > 0)
+			{
+				// push new object into pool
+				for (int32 i = 0; i < imax; ++i)
 				{
-					FScopeLock lockPool(&poolCriticalSection);
-					ptrPool.Push(InSharedPtr);
+					m_pool.push(std::make_shared<T>());
 				}
-				else {
-					ptrPool.Push(InSharedPtr);
+			}
+			else {
+				///make imax > 0
+				imax = -imax;
+				// pop new object from pool
+				for (int32 i = 0; i < imax; ++i)
+				{
+					m_pool.pop();
 				}
 			}
 		}
 
-		// not thread safe
 		int32 Num()
 		{
-			return ptrPool.Num();
+			return (int32)m_pool.size();
 		}
 
-	private:
-
-		// not thread safe
-		FORCEINLINE TSharedPtr<T, InMode> PopOrCreate()
+		SIZE_T Size()
 		{
-			if (ptrPool.Num() > 0)
+			return m_pool.size();
+		}
+
+		std::shared_ptr<T> Alloc()
+		{
+			std::shared_ptr<T> ret;
+
 			{
-				return ptrPool.Pop(false);
+				ScopeLock _scopelock(&m_pool_locker);
+				if (!m_pool.empty())
+				{
+					ret = m_pool.top();
+					m_pool.pop();
+					return ret;
+				}
 			}
 
-			return TSharedPtr<T, InMode>(new T());
+			if (bNew)
+				return std::make_shared<T>();
 		}
 
-		// stack of shared ptr object 
-		// ensure every sharedptr in pool is valid
-		TArray< TSharedPtr<T, InMode> >  ptrPool;
-		FCriticalSection poolCriticalSection;
+		/*
+		* User Guide
+		* pool.Dealloc(std::move(InSharedPtr));
+		*/
+		void Dealloc(std::shared_ptr<T>&& InSharedPtr)
+		{
+			/// check ptr is valid
+			if (InSharedPtr)
+			{
+				ScopeLock _scopelock(&m_pool_locker);
+				m_pool.push(InSharedPtr);
+			}
+		}
+
+		void Dealloc(std::shared_ptr<T>& InSharedPtr)
+		{
+			/// check ptr is valid
+			if (InSharedPtr)
+			{
+				ScopeLock _scopelock(&m_pool_locker);
+				m_pool.push(InSharedPtr);
+			}
+		}
+
+	protected:
+		std::stack< std::shared_ptr<T> > m_pool;
+
+		//pool locker
+		LOCKTYPE m_pool_locker;
 	};
 }

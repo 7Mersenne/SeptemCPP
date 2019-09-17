@@ -25,6 +25,18 @@
 
 namespace Septem
 {
+	/*
+	*	User Guide
+	Sample Code
+	```
+	LOCKTYPE locker;
+	locker = PTHREAD_MUTEX_INITIALIZER;
+	{
+		ScopeLock _scopelock(&locker);
+	}
+	```
+
+	*/
 	class ScopeLock
 	{
 	public:
