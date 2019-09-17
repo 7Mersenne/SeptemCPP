@@ -14,8 +14,12 @@
 */
 
 #include <assert.h>
+#include <cstddef>
 
 #define LINUX 1
+
+/// build ue style container
+#define UE_STYLE_CONTAINER 1
 
 #ifndef check
 #define check(x) assert(x)
@@ -38,8 +42,7 @@ namespace Septem
 	typedef signed int	 		int32;		// 32-bit signed.
 	typedef signed long long	int64;		// 64-bit signed.
 
-	//typedef std::size_t SIZE_T;
-	//typedef std::ssize 
+	typedef std::size_t SIZE_T;
 
 	// User-defined literals 
 	uint64 operator"" _ui64(uint64 n)

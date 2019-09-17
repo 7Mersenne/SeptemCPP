@@ -16,11 +16,13 @@
 #pragma once
 
 #include <Core/Public/marco.h>
-#include <vector>
 
+#ifndef UE_STYLE_CONTAINER
+#include <vector>
+#else
 namespace Septem
 {
-	
+
 	template<typename T>
 	class TArray
 	{
@@ -83,4 +85,4 @@ namespace Septem
 		return ret;
 	}
 }
-
+#endif // !UE_STYLE_CONTAINER

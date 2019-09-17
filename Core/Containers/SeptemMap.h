@@ -16,9 +16,11 @@
 #pragma once
 
 #include <Core/Public/marco.h>
-#include <map>
 #include <Core/Containers/SeptemArray.h>
 
+#ifndef UE_STYLE_CONTAINER
+#include <map>
+#else
 namespace Septem
 {
 	template<typename KeyType, typename ValueType>
@@ -90,4 +92,6 @@ namespace Septem
 		return m_map[Key];
 	}
 }
+#endif // !UE_STYLE_CONTAINER
+
 

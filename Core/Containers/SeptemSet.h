@@ -16,8 +16,10 @@
 #pragma once
 
 #include <Core/Public/marco.h>
-#include <set>
 
+#ifndef UE_STYLE_CONTAINER
+#include <set>
+#else
 namespace Septem
 {
 	template<typename T>
@@ -34,4 +36,5 @@ namespace Septem
 		m_set.insert(InT);
 	}
 }
+#endif // !UE_STYLE_CONTAINER
 
