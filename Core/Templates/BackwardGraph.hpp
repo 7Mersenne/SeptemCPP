@@ -51,7 +51,7 @@ namespace Septem
 		template<typename VT, typename ET>
 		inline void TBackwardGraph<VT, ET>::AddVertex(VT & InVT)
 		{
-			EdgeAdjustList eal(VertexArray.Num());
+			EdgeAdjustList eal(this->VertexArray.Num());
 			TDirectedGraph<VT, ET>::AddVertex(InVT);
 			ParentEdges.Add(eal);
 		}
@@ -59,7 +59,7 @@ namespace Septem
 		template<typename VT, typename ET>
 		inline void TBackwardGraph<VT, ET>::AddVertex(VT && InVT)
 		{
-			EdgeAdjustList eal(VertexArray.Num());
+			EdgeAdjustList eal(this->VertexArray.Num());
 			TDirectedGraph<VT, ET>::AddVertex(InVT);
 			ParentEdges.Add(eal);
 		}

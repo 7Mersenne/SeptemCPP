@@ -21,6 +21,8 @@
 #ifndef UE_STYLE_CONTAINER
 #include <map>
 #else
+#include <map>
+
 namespace Septem
 {
 	template<typename KeyType, typename ValueType>

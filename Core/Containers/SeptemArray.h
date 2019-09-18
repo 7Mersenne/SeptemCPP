@@ -20,6 +20,8 @@
 #ifndef UE_STYLE_CONTAINER
 #include <vector>
 #else
+#include <vector>
+
 namespace Septem
 {
 
@@ -28,10 +30,9 @@ namespace Septem
 	{
 	public:
 		TArray()
-			:vec()
 		{}
 
-		void Reset();
+		void Reset(int32 InNum = 0);
 
 		int32 Num() const;
 		std::size_t Size() const;
@@ -46,9 +47,9 @@ namespace Septem
 		std::vector<T> m_vector;
 	};
 	template<typename T>
-	inline void TArray<T>::Reset()
+	inline void TArray<T>::Reset(int32 InNum)
 	{
-		m_vector.clear();
+		m_vector.resize((SIZE_T)InNum);
 	}
 	template<typename T>
 	inline int32 TArray<T>::Num() const
