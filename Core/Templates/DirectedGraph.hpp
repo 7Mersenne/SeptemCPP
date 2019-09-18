@@ -17,8 +17,13 @@
 
 #include "GraphType.hpp"
 
+#if UE_STYLE_CONTAINER
 #include <Core/Containers/SeptemArray.h>
 #include <Core/Containers/SeptemMap.h>
+#else
+#include <vector>
+#include <map>
+#endif // UE_STYLE_CONTAINER
 
 #include <string.h>
 
@@ -57,15 +62,26 @@ namespace Septem
 			* need to check IsValidEdge before
 			*/
 			TEdge<ET>& GetEdge(uint64 InKey);
+			
+#if UE_STYLE_CONTAINER
 			/*
 			* get keys array of edge map
 			* @ return	the count of the keys
 			*/
 			int32 GetEdgeKeys(TArray<uint64>& OutKeys);
+#else
+			/*
+			* get keys array of edge map
+			* @ return	the count of the keys
+			*/
+			int32 GetEdgeKeys(std::vector<uint64>& OutKeys);
+#endif
 			bool IsValidVertexIndex(int32 InIndex);
 			bool IsValidEdge(int32 InStartId, int32 InEndId);
 			int32 VertexCount();
+			SIZE_T VertexSize();
 			int32 EdgeCount();
+			SIZE_T EdgeSize();
 			static uint64 HashEdgeKey(uint64 InStartId, uint64 InEndId);
 
 			void Seriallize(uint8* OutBuffer, size_t& OutSize);
@@ -74,10 +90,13 @@ namespace Septem
 			/// can direct to self , default = false
 			bool bDirectSelf;
 
+#if UE_STYLE_CONTAINER
 			TArray<TVertex<VT>> VertexArray;
 			TMap<uint64, TEdge<ET> > EdgeMap;
-			//std::vector<TVertex<VT>> VertexArray;
-			//std::map<uint64, TEdge<ET> > EdgeMap;
+#else
+			std::vector<TVertex<VT>> VertexArray;
+			std::map<uint64, TEdge<ET> > EdgeMap;
+#endif
 		};
 
 		template<typename VT, typename ET>
@@ -94,31 +113,31 @@ namespace Septem
 		template<typename VT, typename ET>
 		inline void TDirectedGraph<VT, ET>::AddVertex(VT & InVT)
 		{
+#if UE_STYLE_CONTAINER
 			TVertex<VT> vertex
 				= { VertexArray.Num(),InVT };
-			/*
-			// push vertex back to the array
-			vertex.Index = VertexArray.Num();
-			vertex.Value = InVT;
-			*/
-
 			VertexArray.Add(vertex);
+#else
+			TVertex<VT> vertex
+				= { VertexArray.size(),InVT };
+			VertexArray.push_back(vertex);
+#endif
 		}
 
 		template<typename VT, typename ET>
 		inline void TDirectedGraph<VT, ET>::AddVertex(VT && InVT)
 		{
+#if UE_STYLE_CONTAINER
 			TVertex<VT> vertex 
 				= {VertexArray.Num(),InVT};
-
-			/*
-			// push vertex back to the array
-			vertex.Index = VertexArray.Num();
-			vertex.Value = InVT;
-			*/
-
 			VertexArray.Add(vertex);
+#else
+			TVertex<VT> vertex
+				= { VertexArray.size(),InVT };
+			VertexArray.push_back(vertex);
+#endif
 		}
+
 		template<typename VT, typename ET>
 		inline bool TDirectedGraph<VT, ET>::AddEdge(TEdge<ET>& InEdge)
 		{
@@ -130,10 +149,16 @@ namespace Septem
 
 			if (IsValidVertexIndex(InEdge.StartId) && IsValidVertexIndex(InEdge.EndId))
 			{
-				uint64 key = HashEdgeKey(InEdge.StartId, InEdge.EndId);//((uint64)InEdge.StartId << 32) | (uint64)InEdge.EndId;
+				uint64 key = HashEdgeKey(InEdge.StartId, InEdge.EndId);//((uint64)InEdge.StartId << 32LL) | (uint64)InEdge.EndId;
+#if UE_STYLE_CONTAINER
 				if (EdgeMap.Contains(key))
 					return false;
 				EdgeMap.Add(key, InEdge);
+#else
+				if (EdgeMap.find(key)!= EdgeMap.end())
+					return false;
+				EdgeMap.insert(std::pair< uint64, TEdge<ET> >(key, InEdge));
+#endif
 				return true;
 			}
 
@@ -143,8 +168,13 @@ namespace Septem
 		template<typename VT, typename ET>
 		inline void TDirectedGraph<VT, ET>::Reset()
 		{
+#if UE_STYLE_CONTAINER
 			VertexArray.Reset();
 			EdgeMap.Reset();
+#else
+			EdgeMap.clear();
+			VertexArray.clear();
+#endif
 		}
 
 		template<typename VT, typename ET>
@@ -164,34 +194,84 @@ namespace Septem
 		{
 			return EdgeMap[InKey];
 		}
-		
+
+#if UE_STYLE_CONTAINER		
 		template<typename VT, typename ET>
 		inline int32 TDirectedGraph<VT, ET>::GetEdgeKeys(TArray<uint64>& OutKeys)
 		{
 			return EdgeMap.GetKeys(OutKeys);
 		}
+#else
+		template<typename VT, typename ET>
+		inline int32 TDirectedGraph<VT, ET>::GetEdgeKeys(std::vector<uint64>& OutKeys)
+		{
+			int32 ret = (int32)EdgeMap.size();
+			OutKeys.clear();
+			for (auto itr = EdgeMap.begin(); itr != EdgeMap.end(); itr++)
+			{
+				OutKeys.push_back(itr->first);
+			}
+			return ret;
+		}
+#endif
 
 		template<typename VT, typename ET>
 		inline bool TDirectedGraph<VT, ET>::IsValidVertexIndex(int32 InIndex)
 		{
+#if UE_STYLE_CONTAINER
 			return InIndex >= 0 && InIndex < VertexArray.Num();
+#else
+			return InIndex >= 0 && InIndex < VertexArray.size();
+#endif
 		}
 		template<typename VT, typename ET>
 		inline bool TDirectedGraph<VT, ET>::IsValidEdge(int32 InStartId, int32 InEndId)
 		{
 			uint64 key = HashEdgeKey((uint64)InStartId, (uint64)InEndId);
-
+#if UE_STYLE_CONTAINER
 			return EdgeMap.Contains(key);
+#else
+			return EdgeMap.find(key) != EdgeMap.end();
+#endif
 		}
 		template<typename VT, typename ET>
 		inline int32 TDirectedGraph<VT, ET>::VertexCount()
 		{
-			return VertexArray.size();
+#if UE_STYLE_CONTAINER
+			return VertexArray.Num();
+#else
+			return (int32)VertexArray.size();
+#endif
 		}
+
+		template<typename VT, typename ET>
+		inline SIZE_T TDirectedGraph<VT, ET>::VertexSize()
+		{
+#if UE_STYLE_CONTAINER
+			return (SIZE_T)VertexArray.Num();
+#else
+			return VertexArray.size();
+#endif
+		}
+
 		template<typename VT, typename ET>
 		inline int32 TDirectedGraph<VT, ET>::EdgeCount()
 		{
+#if UE_STYLE_CONTAINER
+			return EdgeMap.Num();
+#else
+			return (int32)EdgeMap.size();
+#endif
+		}
+
+		template<typename VT, typename ET>
+		inline SIZE_T TDirectedGraph<VT, ET>::EdgeSize()
+		{
+#if UE_STYLE_CONTAINER
+			return (SIZE_T)EdgeMap.Num();
+#else
 			return EdgeMap.size();
+#endif
 		}
 
 		template<typename VT, typename ET>
@@ -216,7 +296,7 @@ namespace Septem
 		{
 			size_t _tvertexSize = sizeof(TVertex<VT>);
 			size_t _tedgeSize = sizeof(TEdge<ET>);
-			OutSize = sizeof(int32) + sizeof(TVertex<VT>) * VertexArray.Num() + sizeof(int32) + sizeof(uint64)*EdgeMap.Num() + sizeof(TEdge<ET>)*EdgeMap.Num() + sizeof(bool);
+			OutSize = sizeof(bool) + sizeof(int32) + sizeof(TVertex<VT>) * VertexCount() + sizeof(int32) + sizeof(uint64)*EdgeCount() + sizeof(TEdge<ET>)* EdgeCount();
 			OutBuffer = malloc(OutSize);
 			size_t _index = 0;
 			size_t _Size = 0;
@@ -229,33 +309,40 @@ namespace Septem
 			_index += _Size;
 
 			// *	+	VertexArray.Num()
-			int32 VertexCount = VertexArray.Num();
+			int32 _VertexCount = VertexCount();
 			_Size = sizeof(int32);
-			memcpy(OutBuffer + _index, &VertexCount, _Size);
+			memcpy(OutBuffer + _index, &_VertexCount, _Size);
 			_index += _Size;
 			// *	+	[	VertexArray		]	x	VertexArray.Num()
 			_Size = sizeof(TVertex<VT>);
-			for (int32 i = 0; i < VertexCount; ++i)
+			for (int32 i = 0; i < _VertexCount; ++i)
 			{
 				memcpy(OutBuffer + _index, &VertexArray[i], _Size);
 				_index += _Size;
 			}
 			// *	+	EdgeMap.Num()
+#if UE_STYLE_CONTAINER
 			TArray<uint64> _edgekeys;
-			int32 EdgeCount = EdgeMap.GetKeys(_edgekeys);
+			int32 _EdgeCount = EdgeMap.GetKeys(_edgekeys);
+			
+#else
+			std::vector<uint64> _edgekeys;
+			int32 _EdgeCount = GetEdgeKeys(_edgekeys);
+#endif
 			_Size = sizeof(int32);
-			memcpy(OutBuffer + _index, &EdgeCount, _Size);
+			memcpy(OutBuffer + _index, &_EdgeCount, _Size);
 			_index += _Size;
+			
 			// *	+	[	EdgeMapKeys	]	x	EdgeMap.Num()
 			_Size = sizeof(uint64);
-			for (int32 i = 0; i < EdgeCount; ++i)
+			for (int32 i = 0; i < _EdgeCount; ++i)
 			{
 				memcpy(OutBuffer + _index, &_edgekeys[i], _Size);
 				_index += _Size;
 			}
 			// *	+	[	EdgeMapValues	]	x	EdgeMap.Num()
 			_Size = sizeof(TEdge<ET>);
-			for (int32 i = 0; i < EdgeCount; ++i)
+			for (int32 i = 0; i < _EdgeCount; ++i)
 			{
 				memcpy(OutBuffer + _index, &EdgeMap[_edgekeys[i]], _Size);
 				_index += _Size;
@@ -294,16 +381,20 @@ namespace Septem
 
 			// *	+	VertexArray.Num()
 
-			int32 VertexCount = 0;// VertexArray.Num();
+			int32 _VertexCount = 0;// VertexArray.Num();
 			_Size = sizeof(int32);
-			memcpy(&VertexCount, InBuffer + _index, _Size);
+			memcpy(&_VertexCount, InBuffer + _index, _Size);
 			_index += _Size;
-			VertexArray.Reset(VertexCount);
+#if UE_STYLE_CONTAINER
+			VertexArray.Reset(_VertexCount);
+#else
+			VertexArray.resize((SIZE_T)_VertexCount);
+#endif
 
 			// *	+	[	VertexArray		]	x	VertexArray.Num()
 			_Size = sizeof(TVertex<VT>);
 			TVertex<VT> _tvertex;
-			for (int32 i = 0; i < VertexCount; ++i)
+			for (int32 i = 0; i < _VertexCount; ++i)
 			{
 				
 				memcpy(&_tvertex, InBuffer + _index, _Size);
@@ -312,28 +403,44 @@ namespace Septem
 			}
 
 			// *	+	EdgeMap.Num()
+#if UE_STYLE_CONTAINER
 			TArray<uint64> _edgekeys;
-			int32 EdgeCount = 0;
+#else
+			std::vector<uint64> _edgekeys;
+#endif
+			int32 _EdgeCount = 0;
 			_Size = sizeof(int32);
-			memcpy(&EdgeCount, InBuffer + _index, _Size);
+			memcpy(&_EdgeCount, InBuffer + _index, _Size);
 			_index += _Size;
 
 			// *	+	[	EdgeMapKeys	]	x	EdgeMap.Num()
-			_edgekeys.Reset(EdgeCount);
+#if UE_STYLE_CONTAINER
+			_edgekeys.Reset(_EdgeCount);
+#else
+			_edgekeys.clear();
+#endif
 			_Size = sizeof(uint64);
 			uint64 _key;
-			for (int32 i = 0; i < EdgeCount; ++i)
+			for (int32 i = 0; i < _EdgeCount; ++i)
 			{
 				memcpy(&_key, InBuffer + _index, _Size);
 				_index += _Size;
+#if UE_STYLE_CONTAINER
 				_edgekeys.Add(_key);
+#else
+				_edgekeys.push_back(_key);
+#endif
 			}
 
 			// *	+	[	EdgeMapValues	]	x	EdgeMap.Num()
+#if UE_STYLE_CONTAINER
 			EdgeMap.Reset();
+#else
+			EdgeMap.clear();
+#endif
 			_Size = sizeof(TEdge<ET>);
 			TEdge<ET> _value;
-			for (int32 i = 0; i < EdgeCount; ++i)
+			for (int32 i = 0; i < _EdgeCount; ++i)
 			{
 				memcpy(&_value, InBuffer + _index, _Size);
 				_index += _Size;

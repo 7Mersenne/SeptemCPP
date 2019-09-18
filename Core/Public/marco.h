@@ -21,7 +21,7 @@
 #define LINUX 1
 
 /// build ue style container
-#define UE_STYLE_CONTAINER 1
+#define UE_STYLE_CONTAINER 0
 
 #ifndef check
 #define check(x) assert(x)

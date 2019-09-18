@@ -17,24 +17,31 @@
 
 #include <Core/Public/marco.h>
 
-#ifndef UE_STYLE_CONTAINER
+#if UE_STYLE_CONTAINER
 #include <set>
-#else
 namespace Septem
 {
 	template<typename T>
 	class TSet
 	{
 	public:
+		void Reset();
 		void Add(T& InT);
 	private:
 		std::set<T> m_set;
 	};
+	template<typename T>
+	inline void TSet<T>::Reset()
+	{
+		m_set.clear();
+	}
 	template<typename T>
 	inline void TSet<T>::Add(T & InT)
 	{
 		m_set.insert(InT);
 	}
 }
-#endif // !UE_STYLE_CONTAINER
+#else
+#include <set>
+#endif // UE_STYLE_CONTAINER
 

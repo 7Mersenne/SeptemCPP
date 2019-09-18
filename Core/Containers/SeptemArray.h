@@ -17,9 +17,7 @@
 
 #include <Core/Public/marco.h>
 
-#ifndef UE_STYLE_CONTAINER
-#include <vector>
-#else
+#if UE_STYLE_CONTAINER
 #include <vector>
 
 namespace Septem
@@ -50,6 +48,7 @@ namespace Septem
 	inline void TArray<T>::Reset(int32 InNum)
 	{
 		m_vector.resize((SIZE_T)InNum);
+		m_vector.clear();
 	}
 	template<typename T>
 	inline int32 TArray<T>::Num() const
@@ -86,4 +85,6 @@ namespace Septem
 		return ret;
 	}
 }
-#endif // !UE_STYLE_CONTAINER
+#else
+#include <vector>
+#endif // UE_STYLE_CONTAINER

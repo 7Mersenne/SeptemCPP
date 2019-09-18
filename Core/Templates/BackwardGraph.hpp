@@ -33,7 +33,11 @@ namespace Septem
 			virtual bool AddEdge(TEdge<ET>& InEdge) override;
 			virtual void Reset() override;
 		protected:
+#if UE_STYLE_CONTAINER
 			TArray< EdgeAdjustList > ParentEdges;
+#else
+			std::vector< EdgeAdjustList > ParentEdges;
+#endif
 		};
 
 		
@@ -51,17 +55,25 @@ namespace Septem
 		template<typename VT, typename ET>
 		inline void TBackwardGraph<VT, ET>::AddVertex(VT & InVT)
 		{
-			EdgeAdjustList eal(this->VertexArray.Num());
+			EdgeAdjustList eal(TDirectedGraph<VT, ET>::VertexCount());
 			TDirectedGraph<VT, ET>::AddVertex(InVT);
+#if UE_STYLE_CONTAINER
 			ParentEdges.Add(eal);
+#else
+			ParentEdges.push_back(eal);
+#endif
 		}
 
 		template<typename VT, typename ET>
 		inline void TBackwardGraph<VT, ET>::AddVertex(VT && InVT)
 		{
-			EdgeAdjustList eal(this->VertexArray.Num());
+			EdgeAdjustList eal(TDirectedGraph<VT, ET>::VertexCount());
 			TDirectedGraph<VT, ET>::AddVertex(InVT);
+#if UE_STYLE_CONTAINER
 			ParentEdges.Add(eal);
+#else
+			ParentEdges.push_back(eal);
+#endif
 		}
 
 		template<typename VT, typename ET>
@@ -69,7 +81,11 @@ namespace Septem
 		{
 			if (TDirectedGraph<VT, ET>::AddEdge(InEdge))
 			{
+#if UE_STYLE_CONTAINER
 				ParentEdges[InEdge.EndId].AdjustVertexes.Add(InEdge.StartId);
+#else
+				ParentEdges[InEdge.EndId].AdjustVertexes.insert(InEdge.StartId);
+#endif
 				return true;
 			}
 			return false;
@@ -79,7 +95,11 @@ namespace Septem
 		inline void TBackwardGraph<VT, ET>::Reset()
 		{
 			TDirectedGraph<VT, ET>::Reset();
+#if UE_STYLE_CONTAINER
 			ParentEdges.Reset();
+#else
+			ParentEdges.clear();
+#endif
 		}
 
 	}

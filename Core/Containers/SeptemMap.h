@@ -18,9 +18,7 @@
 #include <Core/Public/marco.h>
 #include <Core/Containers/SeptemArray.h>
 
-#ifndef UE_STYLE_CONTAINER
-#include <map>
-#else
+#if UE_STYLE_CONTAINER
 #include <map>
 
 namespace Septem
@@ -94,6 +92,8 @@ namespace Septem
 		return m_map[Key];
 	}
 }
-#endif // !UE_STYLE_CONTAINER
+#else
+#include <map>
+#endif // UE_STYLE_CONTAINER
 
 
