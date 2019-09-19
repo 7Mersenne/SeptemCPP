@@ -50,7 +50,7 @@ namespace Septem
 		void Reset(int32 PoolCount = DEFAULT_RECYCLE_POOL_SIZE)
 		{
 			ScopeLock _scopelock(&m_pool_locker);
-			int32 imax = PoolCount - m_pool.size();
+			int32 imax = PoolCount - (int32)m_pool.size();
 			if (imax > 0)
 			{
 				// push new object into pool

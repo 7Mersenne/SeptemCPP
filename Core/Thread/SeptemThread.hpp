@@ -86,6 +86,7 @@ namespace Septem
 	public:
 		void PushTask(std::shared_ptr<TaskType>& InTask);
 		void PushTask(std::shared_ptr<TaskType>&& InTask);
+		bool PopTask(std::shared_ptr<TaskType>& OutTask);
 		void ClearTaskQueue();
 	protected:
 		// task queue
@@ -132,8 +133,12 @@ namespace Septem
 	{
 		TTaskThread<TaskType>* thread = dynamic_cast<TTaskThread<TaskType>*>(arg);
 		check(thread);
+		thread->i_ThreadState = 1;
 		thread->Init();
+		thread->bRunning = true;
+		thread->i_ThreadState = 2;
 		thread->Run();
+		thread->i_ThreadState = 3;
 		thread->Destory();
 		return nullptr;
 	}
@@ -141,20 +146,16 @@ namespace Septem
 	template<typename TaskType>
 	inline void TTaskThread<TaskType>::Init()
 	{
-		i_ThreadState = 1;
 	}
 
 	template<typename TaskType>
 	inline void TTaskThread<TaskType>::Run()
 	{
-		bRunning = true;
-		i_ThreadState = 2;
 	}
 
 	template<typename TaskType>
 	inline void TTaskThread<TaskType>::Destory()
 	{
-		i_ThreadState = 3;
 	}
 
 	template<typename TaskType>
@@ -175,6 +176,20 @@ namespace Septem
 			ScopeLock _scopelock(&m_QueueLocker);
 			taskQueue.push(InTask);
 		}
+	}
+
+	template<typename TaskType>
+	inline bool TTaskThread<TaskType>::PopTask(std::shared_ptr<TaskType>& OutTask)
+	{
+		ScopeLock _scopelock(&m_QueueLocker);
+		if (taskQueue.empty())
+		{
+			return false;
+		}
+
+		OutTask = taskQueue.front();
+		taskQueue.pop();
+		return true;
 	}
 
 	template<typename TaskType>

@@ -119,7 +119,7 @@ namespace Septem
 			VertexArray.Add(vertex);
 #else
 			TVertex<VT> vertex
-				= { VertexArray.size(),InVT };
+				= { (int32)VertexArray.size(),InVT };
 			VertexArray.push_back(vertex);
 #endif
 		}
@@ -133,7 +133,7 @@ namespace Septem
 			VertexArray.Add(vertex);
 #else
 			TVertex<VT> vertex
-				= { VertexArray.size(),InVT };
+				= { (int32)VertexArray.size(),InVT };
 			VertexArray.push_back(vertex);
 #endif
 		}
@@ -221,7 +221,7 @@ namespace Septem
 #if UE_STYLE_CONTAINER
 			return InIndex >= 0 && InIndex < VertexArray.Num();
 #else
-			return InIndex >= 0 && InIndex < VertexArray.size();
+			return InIndex >= 0 && InIndex < (int32)VertexArray.size();
 #endif
 		}
 		template<typename VT, typename ET>
