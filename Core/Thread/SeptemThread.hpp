@@ -94,6 +94,13 @@ namespace Septem
 		// queue locker
 		LOCKTYPE m_QueueLocker;
 		//============ task  queue end	 =================
+
+		//============ task delegate begin =================
+	public:
+		// delegate example: bool DelegateFunc(std::shared_ptr<TaskType>& InTaskPtr);
+		std::function< void(std::shared_ptr<TaskType>&) > TaskDelegate;
+		virtual void OnDoTask(std::shared_ptr<TaskType>& InTaskPtr);
+		//============ task delegate end	   =================
 	};
 
 	template<typename TaskType>
@@ -151,6 +158,15 @@ namespace Septem
 	template<typename TaskType>
 	inline void TTaskThread<TaskType>::Run()
 	{
+		std::shared_ptr < TaskType > pCacheTask;
+		while (bRunning)
+		{
+			// poptask is thread safe here!
+			if (PopTask(pCacheTask) && pCacheTask)
+			{
+				TaskDelegate(pCacheTask);
+			}
+		}
 	}
 
 	template<typename TaskType>
@@ -197,6 +213,12 @@ namespace Septem
 	{
 		ScopeLock _scopelock(&m_QueueLocker);
 		while (taskQueue.size() > 0) taskQueue.pop();
+	}
+
+	template<typename TaskType>
+	inline void TTaskThread<TaskType>::OnDoTask(std::shared_ptr<TaskType>& InTaskPtr)
+	{
+		TaskDelegate(InTaskPtr);
 	}
 
 }

@@ -84,8 +84,8 @@ namespace Septem
 			SIZE_T EdgeSize();
 			static uint64 HashEdgeKey(uint64 InStartId, uint64 InEndId);
 
-			void Seriallize(uint8* OutBuffer, size_t& OutSize);
-			void Deseriallize(uint8* InBuffer, size_t InSize);
+			void Seriallize(uint8* OutBuffer, SIZE_T& OutSize);
+			void Deseriallize(uint8* InBuffer, SIZE_T InSize);
 		protected:
 			/// can direct to self , default = false
 			bool bDirectSelf;
@@ -292,14 +292,14 @@ namespace Septem
 		*		sizeof(VertexArray.Num()) + sizeof(TVertex<VT>) * VertexArray.Num()	+ sizeof(EdgeMap.Num()) + sizeof(uint64)*EdgeMap.Num() + sizeof(TEdge<ET>)*EdgeMap.Num() + sizeof(bDirectSelf)
 		*/
 		template<typename VT, typename ET>
-		inline void TDirectedGraph<VT, ET>::Seriallize(uint8 * OutBuffer, size_t & OutSize)
+		inline void TDirectedGraph<VT, ET>::Seriallize(uint8 * OutBuffer, SIZE_T & OutSize)
 		{
-			size_t _tvertexSize = sizeof(TVertex<VT>);
-			size_t _tedgeSize = sizeof(TEdge<ET>);
+			//SIZE_T _tvertexSize = sizeof(TVertex<VT>);
+			//SIZE_T _tedgeSize = sizeof(TEdge<ET>);
 			OutSize = sizeof(bool) + sizeof(int32) + sizeof(TVertex<VT>) * VertexCount() + sizeof(int32) + sizeof(uint64)*EdgeCount() + sizeof(TEdge<ET>)* EdgeCount();
-			OutBuffer = malloc(OutSize);
-			size_t _index = 0;
-			size_t _Size = 0;
+			OutBuffer = (uint8*)malloc(OutSize);
+			SIZE_T _index = 0;
+			SIZE_T _Size = 0;
 
 			// *	{ Graph Memory }
 
@@ -362,13 +362,13 @@ namespace Septem
 		*		sizeof(VertexArray.Num()) + sizeof(TVertex<VT>) * VertexArray.Num()	+ sizeof(EdgeMap.Num()) + sizeof(uint64)*EdgeMap.Num() + sizeof(TEdge<ET>)*EdgeMap.Num() + sizeof(bDirectSelf)
 		*/
 		template<typename VT, typename ET>
-		inline void TDirectedGraph<VT, ET>::Deseriallize(uint8 * InBuffer, size_t InSize)
+		inline void TDirectedGraph<VT, ET>::Deseriallize(uint8 * InBuffer, SIZE_T InSize)
 		{
-			size_t _tvertexSize = sizeof(TVertex<VT>);
-			size_t _tedgeSize = sizeof(TEdge<ET>);
+			//SIZE_T _tvertexSize = sizeof(TVertex<VT>);
+			//SIZE_T _tedgeSize = sizeof(TEdge<ET>);
 
-			size_t _index = 0;
-			size_t _Size = 0;
+			SIZE_T _index = 0;
+			SIZE_T _Size = 0;
 
 			Reset();
 
