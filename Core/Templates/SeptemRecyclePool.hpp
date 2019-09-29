@@ -120,7 +120,7 @@ namespace Septem
 		* User Guide
 		* pool.Dealloc(std::move(InSharedPtr));
 		*/
-		void Dealloc(std::shared_ptr<T>&& InSharedPtr)
+		void Dealloc(const std::shared_ptr<T>&& InSharedPtr)
 		{
 			/// check ptr is valid
 			if (InSharedPtr)
@@ -130,7 +130,7 @@ namespace Septem
 			}
 		}
 
-		void Dealloc(std::shared_ptr<T>& InSharedPtr)
+		void Dealloc(const std::shared_ptr<T>& InSharedPtr)
 		{
 			/// check ptr is valid
 			if (InSharedPtr)

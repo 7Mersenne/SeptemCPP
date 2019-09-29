@@ -84,9 +84,13 @@ namespace Septem
 
 		//============ task  queue begin =================
 	public:
+		// thread safe
 		void PushTask(std::shared_ptr<TaskType>& InTask);
+		// thread safe
 		void PushTask(std::shared_ptr<TaskType>&& InTask);
+		// thread safe
 		bool PopTask(std::shared_ptr<TaskType>& OutTask);
+		// thread safe
 		void ClearTaskQueue();
 	protected:
 		// task queue
@@ -138,7 +142,7 @@ namespace Septem
 	template<typename TaskType>
 	inline void * TTaskThread<TaskType>::ThreadRun(void * arg)
 	{
-		TTaskThread<TaskType>* thread = dynamic_cast<TTaskThread<TaskType>*>(arg);
+		TTaskThread<TaskType>* thread = (TTaskThread<TaskType>*) arg; //dynamic_cast<TTaskThread<TaskType>*>(arg);
 		check(thread);
 		thread->i_ThreadState = 1;
 		thread->Init();
@@ -164,7 +168,7 @@ namespace Septem
 			// poptask is thread safe here!
 			if (PopTask(pCacheTask) && pCacheTask)
 			{
-				TaskDelegate(pCacheTask);
+				OnDoTask(pCacheTask);
 			}
 		}
 	}
