@@ -147,7 +147,7 @@ namespace Septem
 	{
 		Head.syncword = InSyncword;
 		// 1. find syncword for head
-		int32 index = BufferBufferSyncword(Data, BufferSize, Head.syncword);
+		int32 index = Septem::BufferBufferSyncword(Data, BufferSize, Head.syncword);
 		uint8 fastcode = 0;
 
 		if (-1 == index)
@@ -166,7 +166,7 @@ namespace Septem
 		}
 
 		index += FSNetBufferHead::MemSize();
-		fastcode ^= Head.XOR();
+		fastcode = fastcode ^ Head.XOR();
 
 		if (0 == Head.uid)
 		{
@@ -185,7 +185,7 @@ namespace Septem
 				return;
 			}
 			index += Body.MemSize();
-			fastcode ^= Body.XOR();
+			fastcode = fastcode ^ Body.XOR();
 		}
 
 		// 4. read foot
@@ -197,7 +197,7 @@ namespace Septem
 		}
 
 		index += FSNetBufferFoot::MemSize();
-		fastcode ^= Foot.XOR();
+		fastcode = fastcode ^ Foot.XOR();
 
 		BytesRead = index;
 		bFastIntegrity = 0 == fastcode;
@@ -234,7 +234,7 @@ namespace Septem
 
 		Head.syncword = InSyncword;
 		// 1. find syncword for head
-		int32 index = BufferBufferSyncword(Data, BufferSize, Head.syncword);
+		int32 index = Septem::BufferBufferSyncword(Data, BufferSize, Head.syncword);
 		uint8 fastcode = 0;
 
 		if (-1 == index)
@@ -253,7 +253,7 @@ namespace Septem
 		}
 
 		index += FSNetBufferHead::MemSize();
-		fastcode ^= Head.XOR();
+		fastcode = fastcode ^ Head.XOR();
 
 		if (0 == Head.uid)
 		{
@@ -270,7 +270,7 @@ namespace Septem
 				return;
 			}
 			index += Body.MemSize();
-			fastcode ^= Body.XOR();
+			fastcode = fastcode ^ Body.XOR();
 		}
 
 		// 4. read foot
@@ -282,7 +282,7 @@ namespace Septem
 		}
 
 		index += FSNetBufferFoot::MemSize();
-		fastcode ^= Foot.XOR();
+		fastcode = fastcode ^ Foot.XOR();
 
 		BytesRead = index;
 		bFastIntegrity = fastcode == 0;
@@ -302,7 +302,7 @@ namespace Septem
 		int32 index = 0;
 		uint8 fastcode = 0;
 
-		fastcode ^= Head.XOR();
+		fastcode = fastcode ^ Head.XOR();
 
 		if (0 == Head.uid)
 		{
@@ -319,7 +319,7 @@ namespace Septem
 				return;
 			}
 			index += Body.MemSize();
-			fastcode ^= Body.XOR();
+			fastcode = fastcode ^ Body.XOR();
 		}
 
 		// 3. read foot
@@ -331,7 +331,7 @@ namespace Septem
 		}
 
 		index += FSNetBufferFoot::MemSize();
-		fastcode ^= Foot.XOR();
+		fastcode = fastcode ^ Foot.XOR();
 
 		BytesRead = index;
 		bFastIntegrity = fastcode == 0;
@@ -355,7 +355,7 @@ namespace Septem
 
 		//1. write heads
 		memcpy(DataPtr, &Head, FSNetBufferHead::MemSize());
-		BytesWrite += sizeof(FSNetBufferHead);
+		BytesWrite += (int32)sizeof(FSNetBufferHead);
 
 		//2. write Body
 		if (Head.uid != 0)

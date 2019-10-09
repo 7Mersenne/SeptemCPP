@@ -118,7 +118,7 @@ namespace Septem {
 		std::mutex PoolLock;
 	public:
 		TNetPacketQueue()
-			: TNetPacketPool()
+			: TNetPacketPool<T>()
 		{
 		}
 

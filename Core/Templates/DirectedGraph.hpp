@@ -40,9 +40,6 @@ namespace Septem
 		class TDirectedGraph
 		{
 		public:
-			TDirectedGraph();
-			virtual ~TDirectedGraph();
-
 			virtual void AddVertex(VT& InVT);
 			virtual void AddVertex(VT&& InVT);
 			virtual bool AddEdge(TEdge<ET>& InEdge);
@@ -97,18 +94,14 @@ namespace Septem
 			std::vector<TVertex<VT>> VertexArray;
 			std::map<uint64, TEdge<ET> > EdgeMap;
 #endif
+
+		public:
+			TDirectedGraph()
+				:bDirectSelf(false)
+			{
+			}
+			virtual ~TDirectedGraph() {}
 		};
-
-		template<typename VT, typename ET>
-		TDirectedGraph<VT, ET>::TDirectedGraph()
-			:bDirectSelf(false)
-		{
-		}
-
-		template<typename VT, typename ET>
-		TDirectedGraph<VT, ET>::~TDirectedGraph()
-		{
-		}
 
 		template<typename VT, typename ET>
 		inline void TDirectedGraph<VT, ET>::AddVertex(VT & InVT)

@@ -98,22 +98,24 @@ namespace Septem
 			return m_pool.size();
 		}
 
-		std::shared_ptr<T> Alloc(bool bNew = true)
+		std::shared_ptr<T> Alloc()
 		{
 			std::shared_ptr<T> ret;
-
+			// TODO: find out why use_count + 1, cause cannot delete
+			printf("try alloc ptr :\n");
 			{
 				ScopeLock _scopelock(&m_pool_locker);
 				if (!m_pool.empty())
 				{
-					ret = m_pool.top();
+					ret.swap(m_pool.top());
+					printf("%d\n", ret.use_count());
 					m_pool.pop();
+					printf("%d\n", ret.use_count());
 					return ret;
 				}
 			}
-
-			if (bNew)
-				return std::make_shared<T>();
+			printf("alloc ptr end:\n");
+			return std::make_shared<T>();
 		}
 
 		/*

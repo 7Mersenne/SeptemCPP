@@ -5,6 +5,8 @@
 #include <Core/Public/marco.h>
 #include "ServoProtocol.h"
 #include "NetBufferWrapper.hpp"
+#include "Core/Algorithm/SeptemBuffer.h"
+#include <string.h>
 
 
 namespace Septem
@@ -29,12 +31,12 @@ namespace Septem
 		// check data integrity with fastcode
 		static bool FastIntegrity(uint8* DataPtr, int32 DataLength, uint8 fastcode)
 		{
-			uint8 xor = 0;
+			uint8 _xor = 0;
 			for (int32 i = 0; i < DataLength; ++i)
 			{
-				xor ^= DataPtr[i];
+				_xor ^= DataPtr[i];
 			}
-			return xor == fastcode;
+			return _xor == fastcode;
 		}
 
 		bool CheckIntegrity();
@@ -51,7 +53,7 @@ namespace Septem
 		{
 			Head.syncword = InSyncword;
 			// 1. find syncword for head
-			int32 index = BufferBufferSyncword(Data, BufferSize, Head.syncword);
+			int32 index = Septem::BufferBufferSyncword(Data, BufferSize, Head.syncword);
 			uint8 fastcode = 0;
 
 			if (-1 == index)
@@ -252,7 +254,7 @@ namespace Septem
 
 		Head.syncword = InSyncword;
 		// 1. find syncword for head
-		int32 index = BufferBufferSyncword(Data, BufferSize, Head.syncword);
+		int32 index = Septem::BufferBufferSyncword(Data, BufferSize, Head.syncword);
 		uint8 fastcode = 0;
 
 		if (-1 == index)
@@ -374,7 +376,7 @@ namespace Septem
 	{
 		int32 BytesWrite = 0;
 		int32 writeSize = sizeof(FSNetBufferHead) + sizeof(FSNetBufferFoot);
-		if (Head.uid > 0ui16)
+		if (Head.uid > 0U)
 		{
 			writeSize += Body.MemSize();
 		}
@@ -391,7 +393,7 @@ namespace Septem
 		{
 			//FMemory::Memcpy(DataPtr + BytesWrite, Body.bufferPtr, Body.length);
 			int32 outSize = 0;
-			bool bSuccessSerialize = Body.Serialize(DataPtr + BytesWrite, InBufferArr.Num() - BytesWrite, outSize);
+			bool bSuccessSerialize = Body.Serialize(DataPtr + BytesWrite, InBufferArr.size() - BytesWrite, outSize);
 
 			check(bSuccessSerialize);
 
@@ -438,7 +440,7 @@ namespace Septem
 	inline TServoProtocol<T,  PoolMode>* TServoProtocol<T,  PoolMode>::Get()
 	{
 		if (nullptr == pSingleton) {
-			FScopeLock lockSingleton(&mCriticalSection);
+			std::lock_guard<std::mutex> scopelock(mCriticalSection);
 			pSingleton = new TServoProtocol<T,  PoolMode>();
 		}
 
@@ -449,7 +451,7 @@ namespace Septem
 	inline TServoProtocol<T,  PoolMode>& TServoProtocol<T,  PoolMode>::GetRef()
 	{
 		if (nullptr == pSingleton) {
-			FScopeLock lockSingleton(&mCriticalSection);
+			std::lock_guard<std::mutex> scopelock(mCriticalSection);
 			pSingleton = new TServoProtocol<T,  PoolMode>();
 		}
 
