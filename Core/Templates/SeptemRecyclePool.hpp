@@ -101,26 +101,24 @@ namespace Septem
 		std::shared_ptr<T> Alloc()
 		{
 			std::shared_ptr<T> ret;
-			// TODO: find out why use_count + 1, cause cannot delete
-			printf("try alloc ptr :\n");
+			// You cannot call copy construct function of this class, the use_count will + 1, cause cannot delete
+			
 			{
 				ScopeLock _scopelock(&m_pool_locker);
 				if (!m_pool.empty())
 				{
-					ret.swap(m_pool.top());
-					printf("%d\n", ret.use_count());
+					//ret.swap(m_pool.top());
+					ret = m_pool.top();
 					m_pool.pop();
-					printf("%d\n", ret.use_count());
 					return ret;
 				}
 			}
-			printf("alloc ptr end:\n");
 			return std::make_shared<T>();
 		}
 
 		/*
 		* User Guide
-		* pool.Dealloc(std::move(InSharedPtr));
+		* pool.Dealloc(InSharedPtr);
 		*/
 		void Dealloc(const std::shared_ptr<T>&& InSharedPtr)
 		{
