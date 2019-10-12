@@ -227,6 +227,8 @@ namespace Septem
 
 		// check data integrity with fastcode
 		static bool FastIntegrity(uint8* DataPtr, int32 DataLength, uint8 fastcode);
+		void OnStampSeal();
+		void OnSeal();
 
 		bool CheckIntegrity();
 

@@ -81,7 +81,7 @@ namespace Septem
 			SIZE_T EdgeSize();
 			static uint64 HashEdgeKey(uint64 InStartId, uint64 InEndId);
 
-			void Seriallize(uint8* OutBuffer, SIZE_T& OutSize);
+			void Seriallize(uint8* OutBuffer, SIZE_T& OutSize, bool bAllocBuffer);
 			void Deseriallize(uint8* InBuffer, SIZE_T InSize);
 		protected:
 			/// can direct to self , default = false
@@ -282,15 +282,19 @@ namespace Septem
 		*	+	[	EdgeMapKeys	]	x	EdgeMap.Num()
 		*	+	[	EdgeMapValues	]	x	EdgeMap.Num()
 		*	Total Size = 
-		*		sizeof(VertexArray.Num()) + sizeof(TVertex<VT>) * VertexArray.Num()	+ sizeof(EdgeMap.Num()) + sizeof(uint64)*EdgeMap.Num() + sizeof(TEdge<ET>)*EdgeMap.Num() + sizeof(bDirectSelf)
+		*		sizeof(bDirectSelf) + sizeof(VertexArray.Num()) + sizeof(TVertex<VT>) * VertexArray.Num()	+ sizeof(EdgeMap.Num()) + sizeof(uint64)*EdgeMap.Num() + sizeof(TEdge<ET>)*EdgeMap.Num()
 		*/
 		template<typename VT, typename ET>
-		inline void TDirectedGraph<VT, ET>::Seriallize(uint8 * OutBuffer, SIZE_T & OutSize)
+		inline void TDirectedGraph<VT, ET>::Seriallize(uint8 * OutBuffer, SIZE_T & OutSize, bool bAllocBuffer)
 		{
 			//SIZE_T _tvertexSize = sizeof(TVertex<VT>);
 			//SIZE_T _tedgeSize = sizeof(TEdge<ET>);
 			OutSize = sizeof(bool) + sizeof(int32) + sizeof(TVertex<VT>) * VertexCount() + sizeof(int32) + sizeof(uint64)*EdgeCount() + sizeof(TEdge<ET>)* EdgeCount();
-			OutBuffer = (uint8*)malloc(OutSize);
+			if (bAllocBuffer)
+			{
+				OutBuffer = (uint8*)malloc(OutSize);
+			}
+			
 			SIZE_T _index = 0;
 			SIZE_T _Size = 0;
 
@@ -352,7 +356,7 @@ namespace Septem
 		*	uint64				+	[	EdgeMapKeys	]	x	EdgeMap.Num()
 		*	TEdge<ET>	+	[	EdgeMapValues	]	x	EdgeMap.Num()
 		*	Total Size =
-		*		sizeof(VertexArray.Num()) + sizeof(TVertex<VT>) * VertexArray.Num()	+ sizeof(EdgeMap.Num()) + sizeof(uint64)*EdgeMap.Num() + sizeof(TEdge<ET>)*EdgeMap.Num() + sizeof(bDirectSelf)
+		*		sizeof(bDirectSelf) + sizeof(VertexArray.Num()) + sizeof(TVertex<VT>) * VertexArray.Num()	+ sizeof(EdgeMap.Num()) + sizeof(uint64)*EdgeMap.Num() + sizeof(TEdge<ET>)*EdgeMap.Num()
 		*/
 		template<typename VT, typename ET>
 		inline void TDirectedGraph<VT, ET>::Deseriallize(uint8 * InBuffer, SIZE_T InSize)
