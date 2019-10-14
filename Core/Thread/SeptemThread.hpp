@@ -84,8 +84,13 @@ namespace Septem
 
 		//============ task  queue begin =================
 	public:
+		// thread safe
 		void PushTask(std::shared_ptr<TaskType>& InTask);
+		// thread safe
 		void PushTask(std::shared_ptr<TaskType>&& InTask);
+		// thread safe
+		bool PopTask(std::shared_ptr<TaskType>& OutTask);
+		// thread safe
 		void ClearTaskQueue();
 	protected:
 		// task queue
@@ -93,6 +98,13 @@ namespace Septem
 		// queue locker
 		LOCKTYPE m_QueueLocker;
 		//============ task  queue end	 =================
+
+		//============ task delegate begin =================
+	public:
+		// delegate example: bool DelegateFunc(std::shared_ptr<TaskType>& InTaskPtr);
+		std::function< void(std::shared_ptr<TaskType>&) > TaskDelegate;
+		virtual void OnDoTask(std::shared_ptr<TaskType>& InTaskPtr);
+		//============ task delegate end	   =================
 	};
 
 	template<typename TaskType>
@@ -130,10 +142,14 @@ namespace Septem
 	template<typename TaskType>
 	inline void * TTaskThread<TaskType>::ThreadRun(void * arg)
 	{
-		TTaskThread<TaskType>* thread = dynamic_cast<TTaskThread<TaskType>*>(arg);
+		TTaskThread<TaskType>* thread = (TTaskThread<TaskType>*) arg; //dynamic_cast<TTaskThread<TaskType>*>(arg);
 		check(thread);
+		thread->i_ThreadState = 1;
 		thread->Init();
+		thread->bRunning = true;
+		thread->i_ThreadState = 2;
 		thread->Run();
+		thread->i_ThreadState = 3;
 		thread->Destory();
 		return nullptr;
 	}
@@ -141,20 +157,25 @@ namespace Septem
 	template<typename TaskType>
 	inline void TTaskThread<TaskType>::Init()
 	{
-		i_ThreadState = 1;
 	}
 
 	template<typename TaskType>
 	inline void TTaskThread<TaskType>::Run()
 	{
-		bRunning = true;
-		i_ThreadState = 2;
+		std::shared_ptr < TaskType > pCacheTask;
+		while (bRunning)
+		{
+			// poptask is thread safe here!
+			if (PopTask(pCacheTask) && pCacheTask)
+			{
+				OnDoTask(pCacheTask);
+			}
+		}
 	}
 
 	template<typename TaskType>
 	inline void TTaskThread<TaskType>::Destory()
 	{
-		i_ThreadState = 3;
 	}
 
 	template<typename TaskType>
@@ -178,10 +199,30 @@ namespace Septem
 	}
 
 	template<typename TaskType>
+	inline bool TTaskThread<TaskType>::PopTask(std::shared_ptr<TaskType>& OutTask)
+	{
+		ScopeLock _scopelock(&m_QueueLocker);
+		if (taskQueue.empty())
+		{
+			return false;
+		}
+
+		OutTask = taskQueue.front();
+		taskQueue.pop();
+		return true;
+	}
+
+	template<typename TaskType>
 	inline void TTaskThread<TaskType>::ClearTaskQueue()
 	{
 		ScopeLock _scopelock(&m_QueueLocker);
 		while (taskQueue.size() > 0) taskQueue.pop();
+	}
+
+	template<typename TaskType>
+	inline void TTaskThread<TaskType>::OnDoTask(std::shared_ptr<TaskType>& InTaskPtr)
+	{
+		TaskDelegate(InTaskPtr);
 	}
 
 }

@@ -50,7 +50,7 @@ namespace Septem
 		void Reset(int32 PoolCount = DEFAULT_RECYCLE_POOL_SIZE)
 		{
 			ScopeLock _scopelock(&m_pool_locker);
-			int32 imax = PoolCount - m_pool.size();
+			int32 imax = PoolCount - (int32)m_pool.size();
 			if (imax > 0)
 			{
 				// push new object into pool
@@ -98,29 +98,29 @@ namespace Septem
 			return m_pool.size();
 		}
 
-		std::shared_ptr<T> Alloc(bool bNew = true)
+		std::shared_ptr<T> Alloc()
 		{
 			std::shared_ptr<T> ret;
-
+			// You cannot call copy construct function of this class, the use_count will + 1, cause cannot delete
+			
 			{
 				ScopeLock _scopelock(&m_pool_locker);
 				if (!m_pool.empty())
 				{
+					//ret.swap(m_pool.top());
 					ret = m_pool.top();
 					m_pool.pop();
 					return ret;
 				}
 			}
-
-			if (bNew)
-				return std::make_shared<T>();
+			return std::make_shared<T>();
 		}
 
 		/*
 		* User Guide
-		* pool.Dealloc(std::move(InSharedPtr));
+		* pool.Dealloc(InSharedPtr);
 		*/
-		void Dealloc(std::shared_ptr<T>&& InSharedPtr)
+		void Dealloc(const std::shared_ptr<T>&& InSharedPtr)
 		{
 			/// check ptr is valid
 			if (InSharedPtr)
@@ -130,7 +130,7 @@ namespace Septem
 			}
 		}
 
-		void Dealloc(std::shared_ptr<T>& InSharedPtr)
+		void Dealloc(const std::shared_ptr<T>& InSharedPtr)
 		{
 			/// check ptr is valid
 			if (InSharedPtr)

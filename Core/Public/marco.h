@@ -61,3 +61,36 @@ namespace Septem
 }
 
 #endif // !CROSSPLATFORMVALUE
+
+// Whether the CPU is AArch32/AArch64 (i.e. both 32 and 64-bit variants)
+#ifndef PLATFORM_CPU_ARM_FAMILY
+#if (defined(__arm__) || defined(_M_ARM) || defined(__aarch64__) || defined(_M_ARM64))
+#define PLATFORM_CPU_ARM_FAMILY	1
+#else
+#define PLATFORM_CPU_ARM_FAMILY	0
+#endif
+#endif
+
+/** Default behavior. */
+#define FORCE_THREADSAFE_SHAREDPTRS PLATFORM_CPU_ARM_FAMILY
+#define THREAD_SANITISE_UNSAFEPTR 0
+
+/**
+* ESPMode is used select between either 'fast' or 'thread safe' shared pointer types.
+* This is only used by templates at compile time to generate one code path or another.
+*/
+enum class ESPMode
+{
+	/** Forced to be not thread-safe. */
+	NotThreadSafe = 0,
+
+	/**
+		*	Fast, doesn't ever use atomic interlocks.
+		*	Some code requires that all shared pointers are thread-safe.
+		*	It's better to change it here, instead of replacing ESPMode::Fast to ESPMode::ThreadSafe throughout the code.
+		*/
+	Fast = FORCE_THREADSAFE_SHAREDPTRS ? 1 : 0,
+
+	/** Conditionally thread-safe, never spin locks, but slower */
+	ThreadSafe = 1
+};

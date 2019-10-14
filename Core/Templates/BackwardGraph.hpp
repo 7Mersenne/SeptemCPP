@@ -21,6 +21,10 @@ namespace Septem
 {
 	namespace GraphTheory
 	{
+		/*
+		*	Backward Graph
+		*	No Thread Safe
+		*/
 		template<typename VT, typename ET>
 		class TBackwardGraph : public TDirectedGraph<VT, ET>
 		{

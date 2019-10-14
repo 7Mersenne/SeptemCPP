@@ -19,8 +19,7 @@
 #include <set>
 using namespace std;
 
-#pragma pack(push)
-#pragma pack(8)
+#pragma pack(push, 1)
 
 namespace Septem
 {

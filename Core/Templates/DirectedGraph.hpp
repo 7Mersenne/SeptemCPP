@@ -40,9 +40,6 @@ namespace Septem
 		class TDirectedGraph
 		{
 		public:
-			TDirectedGraph();
-			virtual ~TDirectedGraph();
-
 			virtual void AddVertex(VT& InVT);
 			virtual void AddVertex(VT&& InVT);
 			virtual bool AddEdge(TEdge<ET>& InEdge);
@@ -84,8 +81,8 @@ namespace Septem
 			SIZE_T EdgeSize();
 			static uint64 HashEdgeKey(uint64 InStartId, uint64 InEndId);
 
-			void Seriallize(uint8* OutBuffer, size_t& OutSize);
-			void Deseriallize(uint8* InBuffer, size_t InSize);
+			void Seriallize(uint8* OutBuffer, SIZE_T& OutSize, bool bAllocBuffer);
+			void Deseriallize(uint8* InBuffer, SIZE_T InSize);
 		protected:
 			/// can direct to self , default = false
 			bool bDirectSelf;
@@ -97,18 +94,14 @@ namespace Septem
 			std::vector<TVertex<VT>> VertexArray;
 			std::map<uint64, TEdge<ET> > EdgeMap;
 #endif
+
+		public:
+			TDirectedGraph()
+				:bDirectSelf(false)
+			{
+			}
+			virtual ~TDirectedGraph() {}
 		};
-
-		template<typename VT, typename ET>
-		TDirectedGraph<VT, ET>::TDirectedGraph()
-			:bDirectSelf(false)
-		{
-		}
-
-		template<typename VT, typename ET>
-		TDirectedGraph<VT, ET>::~TDirectedGraph()
-		{
-		}
 
 		template<typename VT, typename ET>
 		inline void TDirectedGraph<VT, ET>::AddVertex(VT & InVT)
@@ -119,7 +112,7 @@ namespace Septem
 			VertexArray.Add(vertex);
 #else
 			TVertex<VT> vertex
-				= { VertexArray.size(),InVT };
+				= { (int32)VertexArray.size(),InVT };
 			VertexArray.push_back(vertex);
 #endif
 		}
@@ -133,7 +126,7 @@ namespace Septem
 			VertexArray.Add(vertex);
 #else
 			TVertex<VT> vertex
-				= { VertexArray.size(),InVT };
+				= { (int32)VertexArray.size(),InVT };
 			VertexArray.push_back(vertex);
 #endif
 		}
@@ -221,7 +214,7 @@ namespace Septem
 #if UE_STYLE_CONTAINER
 			return InIndex >= 0 && InIndex < VertexArray.Num();
 #else
-			return InIndex >= 0 && InIndex < VertexArray.size();
+			return InIndex >= 0 && InIndex < (int32)VertexArray.size();
 #endif
 		}
 		template<typename VT, typename ET>
@@ -289,17 +282,21 @@ namespace Septem
 		*	+	[	EdgeMapKeys	]	x	EdgeMap.Num()
 		*	+	[	EdgeMapValues	]	x	EdgeMap.Num()
 		*	Total Size = 
-		*		sizeof(VertexArray.Num()) + sizeof(TVertex<VT>) * VertexArray.Num()	+ sizeof(EdgeMap.Num()) + sizeof(uint64)*EdgeMap.Num() + sizeof(TEdge<ET>)*EdgeMap.Num() + sizeof(bDirectSelf)
+		*		sizeof(bDirectSelf) + sizeof(VertexArray.Num()) + sizeof(TVertex<VT>) * VertexArray.Num()	+ sizeof(EdgeMap.Num()) + sizeof(uint64)*EdgeMap.Num() + sizeof(TEdge<ET>)*EdgeMap.Num()
 		*/
 		template<typename VT, typename ET>
-		inline void TDirectedGraph<VT, ET>::Seriallize(uint8 * OutBuffer, size_t & OutSize)
+		inline void TDirectedGraph<VT, ET>::Seriallize(uint8 * OutBuffer, SIZE_T & OutSize, bool bAllocBuffer)
 		{
-			size_t _tvertexSize = sizeof(TVertex<VT>);
-			size_t _tedgeSize = sizeof(TEdge<ET>);
+			//SIZE_T _tvertexSize = sizeof(TVertex<VT>);
+			//SIZE_T _tedgeSize = sizeof(TEdge<ET>);
 			OutSize = sizeof(bool) + sizeof(int32) + sizeof(TVertex<VT>) * VertexCount() + sizeof(int32) + sizeof(uint64)*EdgeCount() + sizeof(TEdge<ET>)* EdgeCount();
-			OutBuffer = malloc(OutSize);
-			size_t _index = 0;
-			size_t _Size = 0;
+			if (bAllocBuffer)
+			{
+				OutBuffer = (uint8*)malloc(OutSize);
+			}
+			
+			SIZE_T _index = 0;
+			SIZE_T _Size = 0;
 
 			// *	{ Graph Memory }
 
@@ -359,16 +356,16 @@ namespace Septem
 		*	uint64				+	[	EdgeMapKeys	]	x	EdgeMap.Num()
 		*	TEdge<ET>	+	[	EdgeMapValues	]	x	EdgeMap.Num()
 		*	Total Size =
-		*		sizeof(VertexArray.Num()) + sizeof(TVertex<VT>) * VertexArray.Num()	+ sizeof(EdgeMap.Num()) + sizeof(uint64)*EdgeMap.Num() + sizeof(TEdge<ET>)*EdgeMap.Num() + sizeof(bDirectSelf)
+		*		sizeof(bDirectSelf) + sizeof(VertexArray.Num()) + sizeof(TVertex<VT>) * VertexArray.Num()	+ sizeof(EdgeMap.Num()) + sizeof(uint64)*EdgeMap.Num() + sizeof(TEdge<ET>)*EdgeMap.Num()
 		*/
 		template<typename VT, typename ET>
-		inline void TDirectedGraph<VT, ET>::Deseriallize(uint8 * InBuffer, size_t InSize)
+		inline void TDirectedGraph<VT, ET>::Deseriallize(uint8 * InBuffer, SIZE_T InSize)
 		{
-			size_t _tvertexSize = sizeof(TVertex<VT>);
-			size_t _tedgeSize = sizeof(TEdge<ET>);
+			//SIZE_T _tvertexSize = sizeof(TVertex<VT>);
+			//SIZE_T _tedgeSize = sizeof(TEdge<ET>);
 
-			size_t _index = 0;
-			size_t _Size = 0;
+			SIZE_T _index = 0;
+			SIZE_T _Size = 0;
 
 			Reset();
 
